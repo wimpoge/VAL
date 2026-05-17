@@ -4,6 +4,32 @@ Reverse-chronological log of significant changes to VAL — Visual AI Learning. 
 
 ---
 
+## 2026-05-16
+
+### Day 5 — AI Models (N21–N25)
+
+- **Backend `routers/day05.py` — four endpoints**, single-language per the 2026-05-11 policy (the roadmap's frozen spec proposed an Ollama-vs-active `/compare`; replaced with a real multi-provider compare since the project already ships four providers — no Ollama dependency). Shared `_usage()` / `_fail()` helpers; `_kind()` maps `groq`/`deepseek` → `open`, `openai`/`gemini` → `closed`. Every model call is `track()`-ed under `day="day05"`.
+  - `POST /pretrained` — body `{question, provider?}`. `response_format={"type":"json_object"}`; the model answers from frozen weights and self-classifies the question as `parametric` / `time_sensitive` / `private_data` with a one-line `why` (server-validated enum). Teaches the training-cutoff gap that motivates RAG/tools.
+  - `POST /compare` — body `{question, providers[]}`. Loops each known provider, times it with `perf_counter`, and returns a `results[]` of `{provider, model, kind, answer, latency_ms, tokens, error}`. Per-provider failures are caught into the `error` field (one dead provider doesn't 502 the batch); unknown providers filtered out.
+  - `POST /ask` — body `{question, provider?}`. Plain single-answer + `kind` + `latency_ms`, reused by the N23/N24 "ask one live" panels.
+  - `POST /finetune-vs-prompt` — body `{task, examples[{input,output}], test_input, provider?}`. Two calls: a base call (instruction + test input only) vs a "simulated fine-tune" that injects the examples as prior user/assistant turns. Returns `{base, tuned, …}` so the UI can diff weight-baked vs runtime-conditioned behavior.
+- **Frontend `app/day-05/page.tsx` — five node tabs N21–N25**, same shell as Day 4 (header + day-progress chip, `NODES` nav with ✓, mark-complete wired to `useNodeProgress(5)`, `lg:-mx-24 xl:-mx-40` widening, shared `SectionHeader`/`ErrorBox`/`Footer`/`ExplainerBlock`/`ProviderRow`/`PresetRow`/`SubmitButton`/`Badge` and the `VIZ` palette). Model answers render through the shared `Markdown` component instead of a duplicated parser.
+  - **N21 Pre-trained** — question + presets (one parametric, one time-sensitive, one private-data); shows a color-coded `knowledge_type` badge + `why` above the answer.
+  - **N22 Closed vs open** — multi-select provider chips (default `openai`+`groq`, tinted by `open`/`closed` kind), 2-col result grid with closed=amber / open=green top border, per-card latency + tokens or inline error.
+  - **N23 / N24** — a shared `ModelFamily` explorer: clickable static model cards (GPT-4o/Claude/Gemini; Llama/Mistral/DeepSeek) with vendor/license/access/context detail, plus a live "ask one" form hitting `/day05/ask` through the `ModelSwitcher`.
+  - **N25 Fine-tuning** — editable task + add/remove example rows + held-out test input; 2-col base (grey) vs simulated fine-tune (violet) with combined token footer.
+  - Every node closes with an `ExplainerBlock` (frozen knowledge, rent-vs-own weights, closed=rent, open=own, fine-tune vs prompt trade-off).
+- Progress catalog (`backend/routers/progress.py`) already carried N21–N25 and the router was already registered in `main.py`; no change needed. Verified: backend import + route list, frontend `tsc --noEmit` and `eslint` both clean.
+
+### Day 5 / N21 — knowledge timeline visual
+
+- New `KnowledgeTimeline` block added below the existing N21 chat answer, gated on `result` and keyed on the question so it remounts per submission. Fade-in via a `visible` state flipped on a 30ms `setTimeout` (opacity 0→1, translateY 8px→0, 400ms ease) — same reveal pattern as Day 4's `RoleVoiceVisual`. Full-width single column; the N21 form, `knowledge_type` badge, answer box, token footer, and "Pre-training is frozen knowledge" `ExplainerBlock` are untouched.
+- **Vertical timeline.** A green-left-border "before training cutoff" zone, an amber centered "✂ Training cutoff — weights frozen here" divider (flex line + label + line), and a red-left-border "after cutoff" zone. Each item is a `TimelineItem` (colored dot + text + uppercase pill, color-tinted bg/border at `1F` alpha). Below: a "How to fill the gap" 2-col grid (`GapCard` — blue RAG, violet Tools/function-calling) separated by a top border, then a green-left-border 💡 insight note.
+- **First pass shipped hardcoded example items; replaced with question-derived classification.** `splitClauses()` splits the asked question on `,` / word-bounded `and` / `?` / `;`, trims, drops empties. `classifyClause()` lowercases and checks time-sensitive keywords first (`recent`, `latest`, `today`, `price`, `who won`, …), then private keywords (`my`, `our`, `company`, `internal`, `private`), else `parametric`. Parametric clauses render in the green zone (`parametric` pill); time-sensitive → red (`hallucination risk`), private → red (`never seen`). Empty-state notes: "No stable facts detected in this question" (green) / "No time-sensitive topics detected" (red). No hardcoded items remain.
+- **Defensive fix — `question is undefined` runtime TypeError.** When the live `/day05/pretrained` response omitted `question` (stale `--reload`'d backend, or any path returning no echo), `splitClauses` threw on `.split` of `undefined`. Hardened: `splitClauses` accepts `string | null | undefined` and coerces via `(question ?? '')`; `KnowledgeTimeline`'s prop type widened to match; the call site falls back to the in-scope user-typed `question` state (`result.question ?? question`) for both the `key` and the prop, so the timeline still reflects what was asked even if the API drops the field. `tsc --noEmit` + `eslint` clean after each change.
+
+---
+
 ## 2026-05-15
 
 ### Day 4 / N16 + N18 — visualizers, raw toggle, role fan-out, markdown
