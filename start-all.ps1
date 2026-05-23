@@ -1,10 +1,12 @@
 # One-click bootstrap for the VAL (Visual AI Learning) dev environment.
 # Starts: Docker Desktop -> pgvector container -> FastAPI backend -> Next.js frontend
+# Also starts the practice frontend (port 3001) if practice/frontend/ exists.
 
 $ErrorActionPreference = 'Stop'
 $root = Split-Path -Parent $MyInvocation.MyCommand.Definition
 $backend = Join-Path $root 'backend'
 $frontend = Join-Path $root 'frontend'
+$practiceFrontend = Join-Path $root 'practice\frontend'
 
 function Write-Step($msg) {
     Write-Host ""
@@ -63,7 +65,7 @@ if ($LASTEXITCODE -ne 0) {
     Write-Host "Started."
 }
 
-# 3. Backend (FastAPI) — auto-activate venv if found
+# 3. Backend (FastAPI) - auto-activate venv if found
 $venvActivate = $null
 foreach ($candidate in @('.venv', 'venv', 'env')) {
     $p = Join-Path $backend "$candidate\Scripts\Activate.ps1"
@@ -82,8 +84,24 @@ $frontendCmd = "Set-Location '$frontend'; npm run dev"
 Write-Step "Launching frontend (next dev :3000) in a new window..."
 Start-Process powershell -ArgumentList '-NoExit', '-Command', $frontendCmd | Out-Null
 
+# 5. Practice frontend (Next.js on port 3001) - only if scaffolded
+$practiceStarted = $false
+if (Test-Path $practiceFrontend) {
+    $practiceCmd = "Set-Location '$practiceFrontend'; npm run dev -- --port 3001"
+    Write-Step "Launching practice frontend (next dev :3001) in a new window..."
+    Start-Process powershell -ArgumentList '-NoExit', '-Command', $practiceCmd | Out-Null
+    $practiceStarted = $true
+} else {
+    Write-Step "Practice frontend not found at practice\frontend\ - skipping."
+    Write-Host "  Run the Step 0 prompt in AI_ENGINEER_ROADMAP_ADVANCED.md to scaffold it." -ForegroundColor DarkGray
+}
+
 Write-Step "All set."
-Write-Host "  Backend:  http://localhost:8000  (docs at /docs)"
-Write-Host "  Frontend: http://localhost:3000"
+Write-Host "  Backend:           http://localhost:8000  (docs at /docs)"
+Write-Host "  Frontend:          http://localhost:3000"
+if ($practiceStarted) {
+    Write-Host "  Practice frontend: http://localhost:3001"
+}
 Write-Host ""
-Write-Host "Close the two spawned PowerShell windows to stop the servers."
+$windowCount = if ($practiceStarted) { 'three' } else { 'two' }
+Write-Host "Close the $windowCount spawned PowerShell windows to stop the servers."

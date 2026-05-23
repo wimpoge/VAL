@@ -10,6 +10,10 @@ RATES = {
         "gpt-4o-mini": {"input": 0.15, "output": 0.60},
         "text-embedding-3-small": {"input": 0.02, "output": 0.0},
         "dall-e-2": {"flat": 0.0018},
+        # gpt-image-1 is billed per quality tier. We pin the in-tracker rate
+        # to the "low" tier we use by default; high/medium calls will
+        # under-count cost (acceptable for a demo).
+        "gpt-image-1": {"flat": 0.011},
     },
     "groq": {
         "llama-3.1-8b-instant": {"input": 0.05, "output": 0.08},

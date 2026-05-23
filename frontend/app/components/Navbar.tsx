@@ -203,17 +203,12 @@ export default function Navbar() {
             >
               Usage
             </Link>
-            <Link
-              href="/advanced-ai"
-              className={[
-                'hidden rounded px-2.5 py-1 text-sm transition-colors sm:inline-block',
-                pathname === '/advanced-ai'
-                  ? 'bg-accent text-white'
-                  : 'text-accent hover:bg-accent/10',
-              ].join(' ')}
+            <a
+              href="http://localhost:3001"
+              className="hidden rounded px-2.5 py-1 text-sm text-accent transition-colors hover:bg-accent/10 sm:inline-block"
             >
               Advanced
-            </Link>
+            </a>
             {summary && (
               <button
                 onClick={() => setOpen((o) => !o)}
@@ -290,18 +285,13 @@ export default function Navbar() {
                 >
                   Usage
                 </Link>
-                <Link
-                  href="/advanced-ai"
+                <a
+                  href="http://localhost:3001"
                   onClick={() => setMenuOpen(false)}
-                  className={[
-                    'rounded px-3 py-2 text-sm transition-colors',
-                    pathname === '/advanced-ai'
-                      ? 'bg-accent text-white'
-                      : 'text-accent hover:bg-accent/10',
-                  ].join(' ')}
+                  className="rounded px-3 py-2 text-sm text-accent transition-colors hover:bg-accent/10"
                 >
                   Advanced
-                </Link>
+                </a>
               </div>
             </div>
           </div>
