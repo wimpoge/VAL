@@ -75,6 +75,7 @@ export default function ModelSwitcher({ selected, onChange, disabled }: Props) {
       value={selected || data.default}
       onChange={(e) => onChange(e.target.value)}
       disabled={disabled === true}
+      aria-label="AI provider and model"
       className={`${baseClass} ${disabled ? 'cursor-not-allowed opacity-50' : ''}`}
     >
       {data.providers.map((p) => (

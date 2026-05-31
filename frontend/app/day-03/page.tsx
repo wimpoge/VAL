@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from 'react';
 import { AnswerCard } from '../components/Markdown';
 import ModelSwitcher from '../components/ModelSwitcher';
 import { useNodeProgress } from '../components/useNodeProgress';
+import DayPager from '../components/DayPager';
 import { useStreamingAsk } from '../components/useStreamingAsk';
 
 const NODES = [
@@ -54,7 +55,7 @@ export default function Day03Page() {
               className={[
                 'flex items-center gap-1.5 border px-3 py-1.5 font-mono text-xs uppercase tracking-wide transition',
                 isActive
-                  ? 'border-accent bg-accent text-white'
+                  ? 'border-accent bg-accent text-background'
                   : 'border-rule text-foreground/70 hover:border-foreground hover:text-foreground',
               ].join(' ')}
             >
@@ -64,7 +65,7 @@ export default function Day03Page() {
                   done
                     ? isActive
                       ? 'border-white bg-white text-accent'
-                      : 'border-accent bg-accent text-white'
+                      : 'border-accent bg-accent text-background'
                     : isActive
                       ? 'border-white/60'
                       : 'border-rule',
@@ -87,7 +88,7 @@ export default function Day03Page() {
           className={[
             'flex items-center gap-1.5 border px-2.5 py-1 font-mono text-[11px] uppercase tracking-wide transition disabled:opacity-40',
             activeIsDone
-              ? 'border-accent bg-accent text-white hover:bg-foreground hover:border-foreground'
+              ? 'border-accent bg-accent text-background hover:bg-foreground hover:border-foreground'
               : 'border-rule text-foreground/70 hover:border-foreground hover:text-foreground',
           ].join(' ')}
           suppressHydrationWarning
@@ -102,6 +103,7 @@ export default function Day03Page() {
       {activeId === 'N13' && <NodeCoT />}
       {activeId === 'N14' && <NodeFunctionCalling />}
       {activeId === 'N15' && <NodeCaching />}
+      <DayPager day={3} />
     </article>
   );
 }
@@ -169,7 +171,7 @@ function StreamingExplainer({
             disabled={loading}
           />
         </div>
-        <textarea
+        <textarea aria-label="Form input"
           value={question}
           onChange={(e) => setQuestion(e.target.value)}
           disabled={loading}
@@ -249,7 +251,7 @@ function NodeBasics() {
               disabled={loading}
             />
           </div>
-          <textarea
+          <textarea aria-label="Form input"
             value={question}
             onChange={(e) => setQuestion(e.target.value)}
             disabled={loading}
@@ -659,7 +661,7 @@ function NodeClassify() {
             </button>
           ))}
         </div>
-        <textarea
+        <textarea aria-label="Form input"
           value={review}
           onChange={(e) => setReview(e.target.value)}
           disabled={loading}
@@ -1200,7 +1202,7 @@ function NodeCoT() {
             </button>
           ))}
         </div>
-        <textarea
+        <textarea aria-label="Form input"
           value={question}
           onChange={(e) => setQuestion(e.target.value)}
           disabled={loading}
@@ -1498,7 +1500,7 @@ function NodeFunctionCalling() {
             </button>
           ))}
         </div>
-        <textarea
+        <textarea aria-label="Form input"
           value={question}
           onChange={(e) => setQuestion(e.target.value)}
           disabled={loading}
@@ -2164,7 +2166,7 @@ function NodeCaching() {
             </button>
           ))}
         </div>
-        <textarea
+        <textarea aria-label="Form input"
           value={prompt}
           onChange={(e) => setPrompt(e.target.value)}
           disabled={loading}
@@ -2175,7 +2177,7 @@ function NodeCaching() {
           <label className="font-mono text-xs uppercase tracking-wide text-muted">
             Runs
           </label>
-          <select
+          <select aria-label="Number of runs"
             value={runs}
             onChange={(e) => setRuns(Number(e.target.value))}
             disabled={loading}

@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from 'react';
 import ModelSwitcher from '../components/ModelSwitcher';
 import { useNodeProgress } from '../components/useNodeProgress';
+import DayPager from '../components/DayPager';
 
 const NODES = [
   { id: 'N16', label: 'Structured', title: 'Structured output' },
@@ -63,7 +64,7 @@ export default function Day04Page() {
               className={[
                 'flex items-center gap-1.5 border px-3 py-1.5 font-mono text-xs uppercase tracking-wide transition',
                 active
-                  ? 'border-accent bg-accent text-white'
+                  ? 'border-accent bg-accent text-background'
                   : 'border-rule text-foreground/70 hover:border-foreground hover:text-foreground',
               ].join(' ')}
             >
@@ -73,7 +74,7 @@ export default function Day04Page() {
                   done
                     ? active
                       ? 'border-white bg-white text-accent'
-                      : 'border-accent bg-accent text-white'
+                      : 'border-accent bg-accent text-background'
                     : active
                       ? 'border-white/60'
                       : 'border-rule',
@@ -96,7 +97,7 @@ export default function Day04Page() {
           className={[
             'flex items-center gap-1.5 border px-2.5 py-1 font-mono text-[11px] uppercase tracking-wide transition disabled:opacity-40',
             activeIsDone
-              ? 'border-accent bg-accent text-white hover:bg-foreground hover:border-foreground'
+              ? 'border-accent bg-accent text-background hover:bg-foreground hover:border-foreground'
               : 'border-rule text-foreground/70 hover:border-foreground hover:text-foreground',
           ].join(' ')}
           suppressHydrationWarning
@@ -111,6 +112,7 @@ export default function Day04Page() {
       {activeId === 'N18' && <NodeRole />}
       {activeId === 'N19' && <NodeReact />}
       {activeId === 'N20' && <NodeTemperature />}
+      <DayPager day={4} />
     </article>
   );
 }
@@ -313,7 +315,7 @@ function NodeStructured() {
           disabled={loading}
           labelPrefix="product"
         />
-        <textarea
+        <textarea aria-label="Form input"
           value={description}
           onChange={(e) => setDescription(e.target.value)}
           disabled={loading}
@@ -721,7 +723,7 @@ function NodeSystem() {
           disabled={loading}
           labelPrefix="question"
         />
-        <textarea
+        <textarea aria-label="Form input"
           value={question}
           onChange={(e) => setQuestion(e.target.value)}
           disabled={loading}
@@ -908,7 +910,7 @@ function NodeRole() {
           disabled={loading}
           labelPrefix="task"
         />
-        <textarea
+        <textarea aria-label="Form input"
           value={task}
           onChange={(e) => setTask(e.target.value)}
           disabled={loading}
@@ -1460,7 +1462,7 @@ function NodeReact() {
           disabled={loading}
           labelPrefix="question"
         />
-        <textarea
+        <textarea aria-label="Form input"
           value={question}
           onChange={(e) => setQuestion(e.target.value)}
           disabled={loading}
@@ -1626,7 +1628,7 @@ function NodeTemperature() {
           disabled={loading}
           labelPrefix="prompt"
         />
-        <textarea
+        <textarea aria-label="Form input"
           value={prompt}
           onChange={(e) => setPrompt(e.target.value)}
           disabled={loading}

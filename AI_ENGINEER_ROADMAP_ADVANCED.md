@@ -1,7 +1,9 @@
 # VAL — Visual AI Learning
 > Day 11–20 · 50 nodes (N51–N100) · Stack: **Next.js 14 App Router + Python (FastAPI)** · Per-request model switcher · Bilingual (EN + ID)
 
-> 📝 This file extends AI_ENGINEER_ROADMAP.md. All global rules (provider switching, bilingual JSON, token tracking, ModelSwitcher) carry over unchanged. New routers mount at /day11 … /day20.
+> 📝 This file extends AI_ENGINEER_ROADMAP.md. All global rules (provider switching, token tracking, ModelSwitcher) carry over unchanged. New routers mount at /day11 … /day20.
+
+> 🧭 **Where Day 11–20 lives.** The visual curriculum pages live in the **main VAL frontend** (port 3000) under `frontend/app/advanced-ai/day-XX/page.tsx` — one navigation level beneath the Day 1–10 pages. The **Advanced** button in the navbar opens `/advanced-ai`, which is the Day 11–20 index page. Day 1–10 stays in the existing day-chip nav; Day 11–20 is reached only via the Advanced button so the beginner experience doesn't get crowded.
 
 ---
 
@@ -11,471 +13,25 @@
 ai-engineer-roadmap/
 ├── backend/
 │   └── routers/
-│       ├── day11.py … day20.py       ← add these
-├── frontend/
-│   └── app/
-│       ├── day-11/page.tsx … day-20/page.tsx  ← add these (port 3000)
-└── practice/
-    ├── frontend/                      ← shared practice Next.js app (port 3001)
-    │   └── app/
-    │       ├── layout.tsx             ← same VAL dark theme
-    │       ├── page.tsx               ← redirect to /day-11
-    │       ├── day-11/page.tsx
-    │       ├── day-12/page.tsx
-    │       ├── day-13/page.tsx
-    │       ├── day-14/page.tsx
-    │       ├── day-15/page.tsx
-    │       ├── day-16/page.tsx
-    │       ├── day-17/page.tsx
-    │       ├── day-18/page.tsx
-    │       ├── day-19/page.tsx
-    │       └── day-20/page.tsx
-    ├── day-11/
-    │   └── backend/
-    │       ├── main.py
-    │       └── requirements.txt
-    ├── day-12/
-    │   └── backend/
-    │       ├── main.py
-    │       └── requirements.txt
-    ├── day-13/
-    │   └── backend/
-    │       ├── main.py
-    │       └── requirements.txt
-    ├── day-14/
-    │   └── backend/
-    │       ├── main.py
-    │       └── requirements.txt
-    ├── day-15/
-    │   └── backend/
-    │       ├── main.py
-    │       └── requirements.txt
-    ├── day-16/
-    │   └── backend/
-    │       ├── main.py
-    │       └── requirements.txt
-    ├── day-17/
-    │   └── backend/
-    │       ├── main.py
-    │       └── requirements.txt
-    ├── day-18/
-    │   └── backend/
-    │       ├── main.py
-    │       └── requirements.txt
-    ├── day-19/
-    │   └── backend/
-    │       ├── main.py
-    │       └── requirements.txt
-    └── day-20/
-        └── backend/
-            ├── main.py
-            └── requirements.txt
+│       └── day11.py … day20.py            ← add these (mount at /day11 … /day20)
+└── frontend/
+    └── app/
+        └── advanced-ai/
+            ├── page.tsx                   ← Day 11-20 index (cards grid)
+            ├── day-11/page.tsx
+            ├── day-12/page.tsx
+            ├── day-13/page.tsx
+            ├── day-14/page.tsx
+            ├── day-15/page.tsx
+            ├── day-16/page.tsx
+            ├── day-17/page.tsx
+            ├── day-18/page.tsx
+            ├── day-19/page.tsx
+            └── day-20/page.tsx            ← all served at localhost:3000/advanced-ai/day-XX
 ```
 
 ---
 
-## Step 0 Addition — Practice folder + venv (run once before Day 11)
-
-> This extends the original Step 0 in `AI_ENGINEER_ROADMAP.md`.
-> The VAL app itself runs in your browser — no GPU, no heavy installs needed.
-> The `/practice/` folder is for **optional hands-on experiments** outside the app.
-
-> 📘 **For users who cloned VAL without Claude Code:** See [`PRACTICE.md`](./PRACTICE.md) — a standalone step-by-step guide with common errors, fixes, and try-it scripts for every day. No Claude Code needed.
-
-### Why do we need a virtual environment (venv)?
-
-When you install Python packages globally, different projects can conflict with each other.
-For example: Project A needs `torch==2.0`, Project B needs `torch==2.3` — they can't coexist globally.
-
-A **venv** is an isolated Python environment — like a separate room per project.
-VAL uses **one venv at the project root** (industry standard):
-- All practice days share one environment — no need to create a new venv per day
-- Breaking one experiment never breaks the VAL app backend
-- Easy to delete and recreate without touching anything else
-- `.gitignore` keeps it out of your GitHub repo — no accidentally pushing 2 GB of model weights
-
-### Setup prompt (run once in Claude Code)
-
-````
-Add practice folder setup to the ai-engineer-roadmap project.
-
-━━━ 1. Create /practice/ folder structure ━━━━━━━━━━━━━━━━━━━
-Create the following structure (with .gitkeep in empty folders):
-
-  practice/
-  practice/frontend/                    ← shared Next.js app, port 3001
-  practice/frontend/app/
-  practice/frontend/app/day-11/
-  practice/frontend/app/day-12/
-  practice/frontend/app/day-13/
-  practice/frontend/app/day-14/
-  practice/frontend/app/day-15/
-  practice/frontend/app/day-16/
-  practice/frontend/app/day-17/
-  practice/frontend/app/day-18/
-  practice/frontend/app/day-19/
-  practice/frontend/app/day-20/
-  practice/day-11/backend/              ← Vector DB engines
-  practice/day-12/backend/              ← ML Frameworks
-  practice/day-13/backend/              ← Cloud platform SDKs
-  practice/day-14/backend/              ← Local inference (Ollama, llama.cpp)
-  practice/day-15/backend/              ← Observability (Langfuse, RAGAS)
-  practice/day-16/backend/              ← LLM Frameworks (LangChain, LangGraph, CrewAI)
-  practice/day-17/backend/              ← Docker + CI/CD experiments
-  practice/day-18/backend/              ← Fine-tuning (LoRA, QLoRA)
-  practice/day-19/backend/              ← AI product experiments
-  practice/day-20/backend/              ← Capstone project
-
-━━━ 2. Add to .gitignore ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-Append to .gitignore (create if not exists):
-
-# Practice folder — local experiments, not for repo
-/practice/
-
-# Virtual environments
-.venv/
-venv/
-env/
-
-# Model weights & large files
-*.gguf
-*.bin
-*.safetensors
-*.pt
-*.pth
-*.onnx
-
-# Jupyter notebooks checkpoints
-.ipynb_checkpoints/
-
-# Python cache
-__pycache__/
-*.pyc
-*.pyo
-
-━━━ 3. Create practice/README.md ━━━━━━━━━━━━━━━━━━━━━━━━━━━
-Content:
-# VAL — Practice folder
-
-This folder is gitignored. It's your personal sandbox for hands-on experiments
-outside the VAL app. Each subfolder matches a VAL day.
-
-## Setup (one-time at project root)
-
-```bash
-# From project root — create ONE venv for all practice days
-python -m venv .venv
-
-# Activate (run this every time you open a new terminal)
-source .venv/bin/activate        # Mac / Linux
-.venv\Scripts\activate           # Windows
-
-# Install practice frontend deps (one time)
-cd practice/frontend
-npm install
-
-# Install backend deps for the day you want to practice
-pip install -r practice/day-14/backend/requirements.txt
-
-# Terminal 1 — run practice backend (port 8001)
-cd practice/day-14/backend
-uvicorn main:app --reload --port 8001
-
-# Terminal 2 — run practice frontend (port 3001)
-cd practice/frontend
-npm run dev -- --port 3001
-```
-
-## Why venv?
-One venv at the project root — industry standard approach.
-Keeps all practice packages isolated from your global Python,
-without needing to create/activate a new venv for each day.
-
-━━━ 4. Create per-day requirements.txt files ━━━━━━━━━━━━━━━
-Create requirements.txt in each practice/day-XX/backend/ folder:
-
-practice/day-11/backend/requirements.txt:
-  faiss-cpu==1.8.0
-  chromadb==0.5.0
-  qdrant-client==1.9.0
-  weaviate-client==4.6.0
-  pinecone-client==4.1.0
-  numpy==2.1.3
-  sentence-transformers==3.0.0
-  fastapi==0.115.5
-  uvicorn==0.32.1
-
-practice/day-12/backend/requirements.txt:
-  torch==2.3.0
-  transformers==4.44.0
-  datasets==2.20.0
-  huggingface-hub==0.24.0
-  onnxruntime==1.18.0
-  numpy==2.1.3
-  fastapi==0.115.5
-  uvicorn==0.32.1
-
-practice/day-13/backend/requirements.txt:
-  boto3==1.34.0
-  google-cloud-aiplatform==1.60.0
-  openai==1.54.0
-  dashscope==1.19.0
-  fastapi==0.115.5
-  uvicorn==0.32.1
-
-practice/day-14/backend/requirements.txt:
-  ollama==0.3.0
-  llama-cpp-python==0.2.90
-  huggingface-hub==0.24.0
-  numpy==2.1.3
-  fastapi==0.115.5
-  uvicorn==0.32.1
-
-practice/day-15/backend/requirements.txt:
-  langfuse==2.36.0
-  langchain==0.2.0
-  langchain-openai==0.1.0
-  ragas==0.1.14
-  openai==1.54.0
-  fastapi==0.115.5
-  uvicorn==0.32.1
-
-practice/day-16/backend/requirements.txt:
-  langchain==0.2.0
-  langchain-openai==0.1.0
-  langgraph==0.2.0
-  llama-index==0.10.0
-  crewai==0.51.0
-  openai==1.54.0
-  fastapi==0.115.5
-  uvicorn==0.32.1
-
-practice/day-17/backend/requirements.txt:
-  fastapi==0.115.5
-  uvicorn==0.32.1
-  httpx==0.27.2
-  prometheus-client==0.21.0
-
-practice/day-18/backend/requirements.txt:
-  torch==2.3.0
-  transformers==4.44.0
-  peft==0.12.0
-  bitsandbytes==0.43.0
-  accelerate==0.33.0
-  datasets==2.20.0
-  trl==0.9.0
-  fastapi==0.115.5
-  uvicorn==0.32.1
-
-practice/day-19/backend/requirements.txt:
-  openai==1.54.0
-  httpx==0.27.2
-  rich==13.7.0
-  fastapi==0.115.5
-  uvicorn==0.32.1
-
-practice/day-20/backend/requirements.txt:
-  fastapi==0.115.5
-  uvicorn==0.32.1
-  openai==1.54.0
-  qdrant-client==1.9.0
-  langchain==0.2.0
-  langchain-openai==0.1.0
-  ragas==0.1.14
-  langfuse==2.36.0
-  python-multipart==0.0.12
-
-━━━ 5. Scaffold practice/frontend ━━━━━━━━━━━━━━━━━━━━━━━━━
-Create a Next.js 14 App Router project at practice/frontend/
-
-━━━ practice/frontend/app/layout.tsx ━━━━━━━━━━━━━━━━━━━━━━━
-Same VAL dark theme. Mark as 'use client'. Sticky top navbar, bg-gray-950, text-white.
-
-Left side:
-- "VAL Practice" bold label (coral accent)
-- Day 11–20 links (href="/day-11" … "/day-20"), active highlighted
-
-Right side:
-- Port badge: "Practice · localhost:3001" in muted text
-- Small note: "Backend → localhost:8001"
-
-━━━ practice/frontend/app/page.tsx ━━━━━━━━━━━━━━━━━━━━━━━━
-Redirect to /day-11
-
-━━━ practice/frontend/app/day-XX/page.tsx (stub for all days) ━━━
-For each day 11–20, create a stub page:
-  - Same VAL dark bg (bg-gray-950)
-  - Day number + topic title as h1
-  - "Backend running on localhost:8001?" check — fetch GET http://localhost:8001/health
-    If ok: green badge "Backend ready"
-    If fail: red badge "Start backend: uvicorn main:app --port 8001"
-  - Empty content area — real content added per day
-
-━━━ practice/frontend/next.config.js ━━━━━━━━━━━━━━━━━━━━━━
-module.exports = { reactStrictMode: true }
-
-━━━ practice/frontend/.env.local ━━━━━━━━━━━━━━━━━━━━━━━━━━
-NEXT_PUBLIC_PRACTICE_BACKEND_URL=http://localhost:8001
-
-Requirements: Next.js 14 App Router + TypeScript + Tailwind
-              Same dark theme as VAL (bg-gray-950, coral accents)
-              No placeholder comments
-
-━━━ 6. Create per-day README.md files ━━━━━━━━━━━━━━━━━━━━━━
-Create a README.md in each practice/day-XX/ with this template:
-  # Day XX — [Topic Name]
-  ## What to practice here
-  [2-3 sentences on what this folder is for]
-  ## Setup
-  ```bash
-  # From project root (venv already created at root)
-  source .venv/bin/activate
-
-  # Install backend deps
-  pip install -r practice/day-XX/backend/requirements.txt
-
-  # Run backend (port 8001 — NOT 8000, that's VAL backend)
-  cd practice/day-XX/backend
-  uvicorn main:app --reload --port 8001
-
-  # Run practice frontend (separate terminal, port 3001)
-  cd practice/frontend
-  npm run dev -- --port 3001
-  ```
-  ## Exercises
-  [Leave blank — user fills this in as they learn]
-  ## Notes
-  [Leave blank — user fills this in]
-
-Requirements: No placeholder comments — real files only
-
-━━━ 6. Auto-update requirements.txt rule ━━━━━━━━━━━━━━━━━━━
-Add this rule to CLAUDE.md (create at project root if not exists):
-
-## Practice folder rules — READ CAREFULLY
-
-### What Claude Code CAN and CANNOT touch
-
-CANNOT fix or modify anything inside `/practice/` directly.
-  - Do NOT edit practice scripts
-  - Do NOT edit practice README files
-  - Do NOT edit practice requirements.txt manually
-  - The practice folder is the user's personal sandbox — hands off
-
-CAN fix errors that originate from `backend/` or `frontend/` that
-  affect the practice experience. For example:
-  - A FastAPI endpoint returns wrong data → fix in backend/routers/
-  - A frontend component crashes → fix in frontend/app/
-  - A shared utility (provider.py, token_tracker.py) has a bug → fix there
-
-### Error handling flow
-
-When the user reports an error while running a practice script:
-
-1. READ the error message carefully
-2. DETERMINE if the root cause is:
-   a) Inside practice/ (missing package, wrong script logic)
-      → Do NOT fix the script. Instead tell the user:
-        "This error is in your practice script. Try:
-         pip install <package> and rerun."
-        Then auto-update requirements.txt:
-        `pip freeze > practice/day-XX/requirements.txt`
-
-   b) In backend/ or frontend/ (API returns error, wrong response shape, CORS, etc.)
-      → Fix the root cause in backend/ or frontend/
-      → After fixing, tell the user to rerun the practice script:
-        "Fixed in backend. Rerun your practice script with:
-         python practice/day-XX/your_script.py"
-
-3. AFTER any backend/frontend fix that affects practice:
-   - Restart the affected service if needed:
-     Backend: `uvicorn main:app --reload --port 8000`
-     Frontend (VAL app): `npm run dev` on port 3000
-     Practice frontend (if any): `npm run dev -- --port 3001`
-   - Confirm the fix resolves the practice error before closing
-
-### Port assignments — never mix these up
-
-  VAL app frontend    → port 3000  (npm run dev in frontend/)
-  VAL app backend     → port 8000  (uvicorn in backend/)
-  Practice frontend   → port 3001  (npm run dev -- --port 3001 in practice/frontend/)
-  Practice backend    → port 8001  (uvicorn main:app --port 8001 in practice/day-XX/backend/)
-  Ollama              → port 11434 (ollama serve)
-
-  Never run practice on port 3000 or 8000 — conflicts with VAL app.
-
-### Practice structure rule
-
-  practice/frontend/     ← shared Next.js app for all practice days (port 3001)
-  practice/day-XX/backend/ ← per-day FastAPI backend (port 8001)
-
-  When scaffolding a new practice day, ALWAYS:
-  1. Create practice/day-XX/backend/main.py — FastAPI app on port 8001
-  2. Create practice/day-XX/backend/requirements.txt
-  3. Create practice/frontend/app/day-XX/page.tsx — same VAL dark theme
-  4. Backend CORS must allow http://localhost:3001
-  5. Frontend fetches from http://localhost:8001 (NOT 8000)
-
-### Dependency management rule
-
-Whenever a new Python package is needed in a practice folder:
-
-1. Install in the active venv:
-   `pip install <package>==<version>`
-
-2. Immediately resync requirements.txt:
-   `pip freeze > practice/day-XX/requirements.txt`
-
-3. If version conflict → replace conflicting entry with working version,
-   then resync.
-
-4. If package needs system-level install (e.g. llama-cpp-python CUDA build):
-   Add comment above the entry in requirements.txt:
-   `# Install manually: pip install llama-cpp-python --extra-index-url https://...`
-
-5. Never leave requirements.txt out of sync with what is actually installed.
-
-This rule applies to ALL practice/day-XX/ subfolders.
-````
-
-### VAL app system requirements (to run the learning app)
-
-These are the only requirements to use the VAL app itself:
-
-| What | Requirement |
-|------|-------------|
-| Browser | Chrome / Firefox / Safari — any modern browser |
-| Node.js | 18+ (for Next.js frontend) |
-| Python | 3.11+ (for FastAPI backend) |
-| RAM | 4 GB minimum |
-| GPU | ❌ Not needed |
-| CUDA | ❌ Not needed |
-| Internet | ✅ Required (API calls to OpenAI/Groq/DeepSeek/Gemini) |
-| API keys | At least one of: OpenAI / Groq (free) / DeepSeek / Gemini (free) |
-
-> **Groq and Gemini both have free tiers** — you can run the entire VAL app at zero cost.
-
-### Practice folder system requirements (optional, per day)
-
-| Day | Tools practiced | Min RAM | GPU | CUDA |
-|-----|----------------|---------|-----|------|
-| 11 | FAISS, ChromaDB, Qdrant, Weaviate, Pinecone | 4 GB | ❌ | ❌ |
-| 12 | PyTorch, HuggingFace Transformers, ONNX | 8 GB | Optional | CUDA 11.8+ (optional) |
-| 13 | boto3, google-cloud-aiplatform, dashscope | 4 GB | ❌ | ❌ |
-| 14 | Ollama, llama.cpp, TGI | 8 GB (CPU) / 16 GB (GPU) | Optional | CUDA 12.1+ (optional) |
-| 15 | Langfuse, RAGAS, LangSmith | 4 GB | ❌ | ❌ |
-| 16 | LangChain, LangGraph, CrewAI, LlamaIndex | 4 GB | ❌ | ❌ |
-| 17 | Docker, GitHub Actions | 4 GB | ❌ | ❌ |
-| 18 | LoRA, QLoRA (peft + bitsandbytes) | 16 GB | ✅ 12 GB VRAM | CUDA 12.1+ |
-| 19 | API experiments | 4 GB | ❌ | ❌ |
-| 20 | Full RAG app (Qdrant + LangChain) | 8 GB | ❌ | ❌ |
-
-> **No GPU?** Days 11, 13, 15, 16, 17, 19 work on any laptop.
-> Day 12 and 14 work on CPU (slower). Day 18 fine-tuning → use Kaggle free T4 GPU instead.
-
----
-
----
 
 ## Day 11 — Vector DB Landscape
 
@@ -545,12 +101,12 @@ Requirements: from provider import get_client, get_model, get_provider, BEGINNER
               from token_tracker import track — no placeholder comments
 ```
 
-### Frontend prompt — frontend/app/day-11/page.tsx
+### Frontend prompt — frontend/app/advanced-ai/day-11/page.tsx
 
 ```
 I'm learning AI engineering. Today is Day 11: Vector DB Landscape.
 
-Replace frontend/app/day-11/page.tsx.
+Replace frontend/app/advanced-ai/day-11/page.tsx.
 
 State: question, provider (default "openai"), result, compareData, loading, compareLoading
 
@@ -647,12 +203,12 @@ Requirements: from provider import get_client, get_model, get_provider, BEGINNER
               from token_tracker import track — no placeholder comments
 ```
 
-### Frontend prompt — frontend/app/day-12/page.tsx
+### Frontend prompt — frontend/app/advanced-ai/day-12/page.tsx
 
 ```
 I'm learning AI engineering. Today is Day 12: ML Frameworks.
 
-Replace frontend/app/day-12/page.tsx.
+Replace frontend/app/advanced-ai/day-12/page.tsx.
 
 SECTION 1 — Ask anything (standard pattern)
 - <ModelSwitcher />, text input, POST /day12/ask, EN|ID cards, footer
@@ -737,12 +293,12 @@ Requirements: from provider import get_client, get_model, get_provider, BEGINNER
               from token_tracker import track — no placeholder comments
 ```
 
-### Frontend prompt — frontend/app/day-13/page.tsx
+### Frontend prompt — frontend/app/advanced-ai/day-13/page.tsx
 
 ```
 I'm learning AI engineering. Today is Day 13: Cloud AI Platforms.
 
-Replace frontend/app/day-13/page.tsx.
+Replace frontend/app/advanced-ai/day-13/page.tsx.
 
 SECTION 1 — Ask anything (standard pattern)
 - <ModelSwitcher />, text input placeholder: "What is AWS Bedrock and when should I use it?",
@@ -937,12 +493,12 @@ Requirements: from provider import get_client, get_model, get_provider, BEGINNER
               from token_tracker import track — no placeholder comments
 ```
 
-### Frontend prompt — frontend/app/day-14/page.tsx
+### Frontend prompt — frontend/app/advanced-ai/day-14/page.tsx
 
 ```
 I'm learning AI engineering. Today is Day 14: Local Model Inference.
 
-Replace frontend/app/day-14/page.tsx.
+Replace frontend/app/advanced-ai/day-14/page.tsx.
 
 SECTION 1 — Ask anything (standard pattern)
 - <ModelSwitcher />, text input placeholder: "How do I run Llama 3 locally with Ollama?",
@@ -1053,12 +609,12 @@ Requirements: from provider import get_client, get_model, get_provider, BEGINNER
               from token_tracker import track — no placeholder comments
 ```
 
-### Frontend prompt — frontend/app/day-15/page.tsx
+### Frontend prompt — frontend/app/advanced-ai/day-15/page.tsx
 
 ```
 I'm learning AI engineering. Today is Day 15: Observability & Evals.
 
-Replace frontend/app/day-15/page.tsx.
+Replace frontend/app/advanced-ai/day-15/page.tsx.
 
 SECTION 1 — Ask anything (standard pattern)
 - <ModelSwitcher />, text input placeholder: "What is the difference between LangSmith and Langfuse?",
@@ -1166,12 +722,12 @@ Requirements: from provider import get_client, get_model, get_provider, BEGINNER
               from token_tracker import track — no placeholder comments
 ```
 
-### Frontend prompt — frontend/app/day-16/page.tsx
+### Frontend prompt — frontend/app/advanced-ai/day-16/page.tsx
 
 ```
 I'm learning AI engineering. Today is Day 16: LLM Frameworks.
 
-Replace frontend/app/day-16/page.tsx.
+Replace frontend/app/advanced-ai/day-16/page.tsx.
 
 SECTION 1 — Ask anything (standard pattern)
 - <ModelSwitcher />, text input placeholder: "What is the difference between LangGraph and CrewAI?",
@@ -1286,12 +842,12 @@ Requirements: from provider import get_client, get_model, get_provider, BEGINNER
               from token_tracker import track, RATES — no placeholder comments
 ```
 
-### Frontend prompt — frontend/app/day-17/page.tsx
+### Frontend prompt — frontend/app/advanced-ai/day-17/page.tsx
 
 ```
 I'm learning AI engineering. Today is Day 17: Production & Deployment.
 
-Replace frontend/app/day-17/page.tsx.
+Replace frontend/app/advanced-ai/day-17/page.tsx.
 
 SECTION 1 — Ask anything (standard pattern)
 - <ModelSwitcher />, text input placeholder: "How do I deploy a FastAPI app to EC2 with Docker?",
@@ -1415,12 +971,12 @@ Requirements: from provider import get_client, get_model, get_provider, BEGINNER
               from token_tracker import track — no placeholder comments
 ```
 
-### Frontend prompt — frontend/app/day-18/page.tsx
+### Frontend prompt — frontend/app/advanced-ai/day-18/page.tsx
 
 ```
 I'm learning AI engineering. Today is Day 18: Advanced AI Topics.
 
-Replace frontend/app/day-18/page.tsx.
+Replace frontend/app/advanced-ai/day-18/page.tsx.
 
 SECTION 1 — Ask anything (standard pattern)
 - <ModelSwitcher />, text input placeholder: "What is the difference between RLHF and DPO?",
@@ -1544,12 +1100,12 @@ Requirements: from provider import get_client, get_model, get_provider, BEGINNER
               from token_tracker import track — no placeholder comments
 ```
 
-### Frontend prompt — frontend/app/day-19/page.tsx
+### Frontend prompt — frontend/app/advanced-ai/day-19/page.tsx
 
 ```
 I'm learning AI engineering. Today is Day 19: AI Business & Products.
 
-Replace frontend/app/day-19/page.tsx.
+Replace frontend/app/advanced-ai/day-19/page.tsx.
 
 SECTION 1 — Ask anything (standard pattern)
 - <ModelSwitcher />, text input placeholder: "How does Cursor's GTM strategy work?",
@@ -1675,12 +1231,12 @@ Requirements: from provider import get_client, get_model, get_provider, BEGINNER
               from token_tracker import track — no placeholder comments
 ```
 
-### Frontend prompt — frontend/app/day-20/page.tsx
+### Frontend prompt — frontend/app/advanced-ai/day-20/page.tsx
 
 ```
 I'm learning AI engineering. Today is Day 20: Capstone.
 
-Replace frontend/app/day-20/page.tsx.
+Replace frontend/app/advanced-ai/day-20/page.tsx.
 
 SECTION 1 — Ask anything (capstone Q&A)
 - <ModelSwitcher />, text input placeholder: "What should I build first after finishing this roadmap?",

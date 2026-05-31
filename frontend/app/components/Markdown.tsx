@@ -1,6 +1,16 @@
 'use client';
 
-import FlowDiagram, { type FlowDiagramData } from './FlowDiagram';
+import dynamic from 'next/dynamic';
+import type { FlowDiagramData } from './FlowDiagram';
+
+// FlowDiagram is a 200+-line SVG-animation component that only renders
+// when a streaming answer ships a `diagram` payload (Day 01 mainly). Most
+// pages that import Markdown never render one. next/dynamic with ssr:false
+// keeps it out of the initial bundle and out of SSR until first use.
+const FlowDiagram = dynamic(() => import('./FlowDiagram'), {
+  loading: () => null,
+  ssr: false,
+});
 
 type Block =
   | { kind: 'p' | 'h1' | 'h2' | 'h3'; text: string }

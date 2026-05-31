@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { AnswerCard } from '../components/Markdown';
 import ModelSwitcher from '../components/ModelSwitcher';
 import { useNodeProgress } from '../components/useNodeProgress';
+import DayPager from '../components/DayPager';
 import {
   type FlowDiagramData,
   type StreamMeta,
@@ -182,7 +183,7 @@ export default function Day01Page() {
               className={[
                 'flex items-center gap-1.5 border px-3 py-1.5 font-mono text-xs uppercase tracking-wide transition',
                 isActive
-                  ? 'border-accent bg-accent text-white'
+                  ? 'border-accent bg-accent text-background'
                   : 'border-rule text-foreground/70 hover:border-foreground hover:text-foreground',
               ].join(' ')}
             >
@@ -192,7 +193,7 @@ export default function Day01Page() {
                   done
                     ? isActive
                       ? 'border-white bg-white text-accent'
-                      : 'border-accent bg-accent text-white'
+                      : 'border-accent bg-accent text-background'
                     : isActive
                       ? 'border-white/60'
                       : 'border-rule',
@@ -226,7 +227,7 @@ export default function Day01Page() {
             className={[
               'flex items-center gap-1.5 border px-2.5 py-1 font-mono text-[11px] uppercase tracking-wide transition disabled:opacity-40',
               activeIsDone
-                ? 'border-accent bg-accent text-white hover:bg-foreground hover:border-foreground'
+                ? 'border-accent bg-accent text-background hover:bg-foreground hover:border-foreground'
                 : 'border-rule text-foreground/70 hover:border-foreground hover:text-foreground',
             ].join(' ')}
             suppressHydrationWarning
@@ -271,7 +272,7 @@ export default function Day01Page() {
                 <label className="block font-mono text-xs uppercase tracking-wide text-muted">
                   Question (editable)
                 </label>
-                <textarea
+                <textarea aria-label="Form input"
                   value={question}
                   onChange={(e) => setQuestion(e.target.value)}
                   disabled={anyStreaming}
@@ -370,6 +371,7 @@ export default function Day01Page() {
           {activeId === 'N5' && <VisualN5 />}
         </div>
       </div>
+      <DayPager day={1} />
     </article>
   );
 }

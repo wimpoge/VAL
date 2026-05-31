@@ -1,7 +1,6 @@
 # Stop the VAL (Visual AI Learning) dev stack.
-# Kills whatever is listening on ports 8000 (backend), 3000 (frontend),
-# 8001 (practice backend), 3001 (practice frontend), then stops the
-# pgvector container. Leaves Docker Desktop running.
+# Kills whatever is listening on port 8000 (backend) and 3000 (frontend),
+# then stops the pgvector container. Leaves Docker Desktop running.
 
 $ErrorActionPreference = 'Continue'
 
@@ -39,12 +38,6 @@ Stop-Port 8000
 
 Write-Step "Stopping frontend (port 3000)..."
 Stop-Port 3000
-
-Write-Step "Stopping practice backend (port 8001)..."
-Stop-Port 8001
-
-Write-Step "Stopping practice frontend (port 3001)..."
-Stop-Port 3001
 
 Write-Step "Stopping 'ai-roadmap-pg' container..."
 $null = docker stop ai-roadmap-pg 2>$null

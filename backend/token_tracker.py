@@ -257,6 +257,7 @@ def usage_daily(days: int = 30):
                     """
                     SELECT
                       to_char(date_trunc('day', created_at), 'YYYY-MM-DD') AS bucket,
+                      day,
                       provider,
                       COALESCE(SUM(prompt_tokens), 0) AS prompt_tokens,
                       COALESCE(SUM(completion_tokens), 0) AS completion_tokens,
@@ -265,20 +266,21 @@ def usage_daily(days: int = 30):
                       COUNT(*) AS calls
                     FROM token_usage
                     WHERE created_at >= NOW() - (%s::int * INTERVAL '1 day')
-                    GROUP BY bucket, provider
-                    ORDER BY bucket DESC, provider ASC
+                    GROUP BY bucket, day, provider
+                    ORDER BY bucket DESC, day ASC, provider ASC
                     """,
                     (days,),
                 )
                 rows = [
                     {
                         "date": r[0],
-                        "provider": r[1],
-                        "prompt_tokens": int(r[2]),
-                        "completion_tokens": int(r[3]),
-                        "total_tokens": int(r[4]),
-                        "cost_usd": float(r[5]),
-                        "calls": int(r[6]),
+                        "day": r[1],
+                        "provider": r[2],
+                        "prompt_tokens": int(r[3]),
+                        "completion_tokens": int(r[4]),
+                        "total_tokens": int(r[5]),
+                        "cost_usd": float(r[6]),
+                        "calls": int(r[7]),
                     }
                     for r in cur.fetchall()
                 ]
@@ -299,6 +301,7 @@ def usage_monthly(months: int = 6):
                     """
                     SELECT
                       to_char(date_trunc('month', created_at), 'YYYY-MM') AS bucket,
+                      day,
                       provider,
                       COALESCE(SUM(prompt_tokens), 0) AS prompt_tokens,
                       COALESCE(SUM(completion_tokens), 0) AS completion_tokens,
@@ -307,20 +310,21 @@ def usage_monthly(months: int = 6):
                       COUNT(*) AS calls
                     FROM token_usage
                     WHERE created_at >= date_trunc('month', NOW()) - (%s::int * INTERVAL '1 month')
-                    GROUP BY bucket, provider
-                    ORDER BY bucket DESC, provider ASC
+                    GROUP BY bucket, day, provider
+                    ORDER BY bucket DESC, day ASC, provider ASC
                     """,
                     (months - 1,),
                 )
                 rows = [
                     {
                         "month": r[0],
-                        "provider": r[1],
-                        "prompt_tokens": int(r[2]),
-                        "completion_tokens": int(r[3]),
-                        "total_tokens": int(r[4]),
-                        "cost_usd": float(r[5]),
-                        "calls": int(r[6]),
+                        "day": r[1],
+                        "provider": r[2],
+                        "prompt_tokens": int(r[3]),
+                        "completion_tokens": int(r[4]),
+                        "total_tokens": int(r[5]),
+                        "cost_usd": float(r[6]),
+                        "calls": int(r[7]),
                     }
                     for r in cur.fetchall()
                 ]

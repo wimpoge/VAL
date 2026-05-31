@@ -1,5 +1,6 @@
 'use client';
 
+import Image from 'next/image';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useCallback, useEffect, useRef, useState } from 'react';
@@ -22,7 +23,16 @@ type TokenSummary = {
 type DayProgress = { day: number; done: number; total: number };
 type ProgressResponse = { by_day: DayProgress[] };
 
-const DAYS = Array.from({ length: 10 }, (_, i) => i + 1);
+const BEGINNER_DAYS = Array.from({ length: 10 }, (_, i) => i + 1);
+const ADVANCED_DAYS = Array.from({ length: 10 }, (_, i) => i + 11);
+// Advanced days that have a real page on disk. Day 12-20 are listed but
+// disabled until their pages land — keeping them visible so the user sees
+// the roadmap at a glance rather than a single lonely Day 11 chip.
+const ADVANCED_LIVE = new Set<number>([11, 12, 13, 14, 15, 16, 17, 18, 19, 20]);
+
+function dayHref(day: number, advanced: boolean): string {
+  return advanced ? `/advanced-ai/day-${day}` : `/day-${String(day).padStart(2, '0')}`;
+}
 
 function formatNum(n: number) {
   return n.toLocaleString();
@@ -34,6 +44,12 @@ function formatCost(c: number) {
 
 export default function Navbar() {
   const pathname = usePathname();
+  const inAdvanced = pathname.startsWith('/advanced-ai');
+  // On the /advanced-ai index page itself, the cards already show day status
+  // and the chip strip would just duplicate that. Hide it there. Show it again
+  // once the user clicks into a specific day so they can quick-switch.
+  const onAdvancedIndex = pathname === '/advanced-ai';
+  const showDayChips = !onAdvancedIndex;
   const [summary, setSummary] = useState<TokenSummary | null>(null);
   const [open, setOpen] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
@@ -95,16 +111,37 @@ export default function Navbar() {
     return () => clearInterval(id);
   }, [refetch, refetchProgress]);
 
+  // Close the mobile menu when the route changes.
+  // Note: we do NOT refetch progress here — initial mount is covered by the
+  // 30s-poll effect above, in-app toggles emit 'progress:changed' (handled
+  // below), and tab-refocus / network-online events also force a refetch.
+  // Refetching on every pathname change would just duplicate work.
   useEffect(() => {
-    refetchProgress();
     setMenuOpen(false);
-  }, [pathname, refetchProgress]);
+  }, [pathname]);
 
   useEffect(() => {
     const handler = () => refetchProgress();
     window.addEventListener('progress:changed', handler);
     return () => window.removeEventListener('progress:changed', handler);
   }, [refetchProgress]);
+
+  // Refetch when the user returns to the tab or the network comes back —
+  // catches the "marked complete in another tab" + "Postgres was briefly
+  // down" cases where doneDays would otherwise stay stale until the 30s
+  // poll cycles.
+  useEffect(() => {
+    const onFocus = () => {
+      refetch();
+      refetchProgress();
+    };
+    window.addEventListener('focus', onFocus);
+    window.addEventListener('online', onFocus);
+    return () => {
+      window.removeEventListener('focus', onFocus);
+      window.removeEventListener('online', onFocus);
+    };
+  }, [refetch, refetchProgress]);
 
   const reset = async () => {
     try {
@@ -117,14 +154,21 @@ export default function Navbar() {
 
   return (
     <header className="sticky top-0 z-30 border-b border-rule bg-background/85 backdrop-blur">
-      <div className="mx-auto flex h-14 max-w-5xl items-center justify-between gap-3 px-3 sm:gap-6 sm:px-6">
+      <div className="mx-auto flex h-16 max-w-5xl items-center justify-between gap-3 px-3 sm:gap-6 sm:px-6">
           <div className="flex min-w-0 flex-1 items-center gap-3 sm:gap-6">
             <Link
               href="/day-01"
-              className="flex shrink-0 items-center gap-2 font-serif text-base font-semibold tracking-tight"
+              aria-label="VAL — Visual AI Learning"
+              className="flex shrink-0 items-center"
             >
-              <span className="inline-block h-2 w-2 rounded-full bg-accent" />
-              VAL
+              <Image
+                src="/text_logo.png"
+                alt="VAL — Visual AI Learning"
+                width={1152}
+                height={768}
+                priority
+                className="h-14 w-auto"
+              />
             </Link>
             <button
               ref={menuButtonRef}
@@ -149,15 +193,30 @@ export default function Navbar() {
                 />
               </svg>
             </button>
+            {showDayChips && (
             <nav
               className="hidden min-w-0 items-center gap-1 overflow-x-auto sm:flex"
               style={{ scrollbarWidth: 'none' }}
-              aria-label="Days"
+              aria-label={inAdvanced ? 'Advanced days' : 'Days'}
             >
-              {DAYS.map((d) => {
-                const path = `/day-${String(d).padStart(2, '0')}`;
+              {(inAdvanced ? ADVANCED_DAYS : BEGINNER_DAYS).map((d) => {
+                const path = dayHref(d, inAdvanced);
                 const active = pathname === path;
                 const done = doneDays.has(d);
+                const live = !inAdvanced || ADVANCED_LIVE.has(d);
+                if (!live) {
+                  return (
+                    <span
+                      key={d}
+                      aria-label={`Day ${d} (planned)`}
+                      aria-disabled="true"
+                      title="Planned"
+                      className="inline-flex shrink-0 cursor-not-allowed items-center gap-1 rounded px-2 py-1 text-sm text-foreground/30"
+                    >
+                      <span>{d}</span>
+                    </span>
+                  );
+                }
                 return (
                   <Link
                     key={d}
@@ -167,7 +226,7 @@ export default function Navbar() {
                       'inline-flex shrink-0 items-center gap-1 rounded px-2 py-1 text-sm transition-colors',
                       active
                         ? done
-                          ? 'bg-accent text-white'
+                          ? 'bg-accent text-background'
                           : 'bg-foreground text-background'
                         : done
                           ? 'text-accent hover:bg-accent/10'
@@ -190,6 +249,7 @@ export default function Navbar() {
                 );
               })}
             </nav>
+            )}
           </div>
           <div className="flex shrink-0 items-center gap-2 sm:gap-3">
             <Link
@@ -203,12 +263,17 @@ export default function Navbar() {
             >
               Usage
             </Link>
-            <a
-              href="http://localhost:3001"
-              className="hidden rounded px-2.5 py-1 text-sm text-accent transition-colors hover:bg-accent/10 sm:inline-block"
+            <Link
+              href="/advanced-ai"
+              className={[
+                'hidden rounded px-2.5 py-1 text-sm transition-colors sm:inline-block',
+                pathname.startsWith('/advanced-ai')
+                  ? 'bg-accent text-background'
+                  : 'text-accent hover:bg-accent/10',
+              ].join(' ')}
             >
               Advanced
-            </a>
+            </Link>
             {summary && (
               <button
                 onClick={() => setOpen((o) => !o)}
@@ -226,15 +291,32 @@ export default function Navbar() {
           ref={menuRef}
           className="border-t border-rule bg-paper sm:hidden"
         >
-          <div className="mx-auto flex max-h-[calc(100vh-3.5rem)] max-w-5xl flex-col gap-1 overflow-y-auto overscroll-contain px-3 py-3">
+          <div className="mx-auto flex max-h-[calc(100vh-4rem)] max-w-5xl flex-col gap-1 overflow-y-auto overscroll-contain px-3 py-3">
+            {showDayChips && (
             <div className="px-1 pb-1 font-mono text-[10px] uppercase tracking-[0.18em] text-muted">
-              Days
+              {inAdvanced ? 'Advanced days' : 'Days'}
             </div>
+            )}
+            {showDayChips && (
             <div className="grid grid-cols-5 gap-1.5">
-              {DAYS.map((d) => {
-                const path = `/day-${String(d).padStart(2, '0')}`;
+              {(inAdvanced ? ADVANCED_DAYS : BEGINNER_DAYS).map((d) => {
+                const path = dayHref(d, inAdvanced);
                 const active = pathname === path;
                 const done = doneDays.has(d);
+                const live = !inAdvanced || ADVANCED_LIVE.has(d);
+                if (!live) {
+                  return (
+                    <span
+                      key={d}
+                      aria-label={`Day ${d} (planned)`}
+                      aria-disabled="true"
+                      title="Planned"
+                      className="inline-flex cursor-not-allowed items-center justify-center gap-1 rounded border border-rule px-2 py-2 text-sm text-foreground/30"
+                    >
+                      <span>{d}</span>
+                    </span>
+                  );
+                }
                 return (
                   <Link
                     key={d}
@@ -245,7 +327,7 @@ export default function Navbar() {
                       'inline-flex items-center justify-center gap-1 rounded border px-2 py-2 text-sm transition-colors',
                       active
                         ? done
-                          ? 'border-accent bg-accent text-white'
+                          ? 'border-accent bg-accent text-background'
                           : 'border-foreground bg-foreground text-background'
                         : done
                           ? 'border-accent/40 text-accent hover:bg-accent/10'
@@ -268,6 +350,7 @@ export default function Navbar() {
                 );
               })}
             </div>
+            )}
             <div className="mt-3 border-t border-rule pt-3">
               <div className="px-1 pb-1 font-mono text-[10px] uppercase tracking-[0.18em] text-muted">
                 More
@@ -285,13 +368,18 @@ export default function Navbar() {
                 >
                   Usage
                 </Link>
-                <a
-                  href="http://localhost:3001"
+                <Link
+                  href="/advanced-ai"
                   onClick={() => setMenuOpen(false)}
-                  className="rounded px-3 py-2 text-sm text-accent transition-colors hover:bg-accent/10"
+                  className={[
+                    'rounded px-3 py-2 text-sm transition-colors',
+                    pathname.startsWith('/advanced-ai')
+                      ? 'bg-accent text-background'
+                      : 'text-accent hover:bg-accent/10',
+                  ].join(' ')}
                 >
                   Advanced
-                </a>
+                </Link>
               </div>
             </div>
           </div>

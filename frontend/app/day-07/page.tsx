@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from 'react';
 import { useNodeProgress } from '../components/useNodeProgress';
+import DayPager from '../components/DayPager';
 
 const NODES = [
   { id: 'N31', label: 'What is a DB', title: 'What are vector DBs?' },
@@ -124,7 +125,7 @@ export default function Day07Page() {
               className={[
                 'flex items-center gap-1.5 border px-3 py-1.5 font-mono text-xs uppercase tracking-wide transition',
                 active
-                  ? 'border-accent bg-accent text-white'
+                  ? 'border-accent bg-accent text-background'
                   : 'border-rule text-foreground/70 hover:border-foreground hover:text-foreground',
               ].join(' ')}
             >
@@ -134,7 +135,7 @@ export default function Day07Page() {
                   done
                     ? active
                       ? 'border-white bg-white text-accent'
-                      : 'border-accent bg-accent text-white'
+                      : 'border-accent bg-accent text-background'
                     : active
                       ? 'border-white/60'
                       : 'border-rule',
@@ -157,7 +158,7 @@ export default function Day07Page() {
           className={[
             'flex items-center gap-1.5 border px-2.5 py-1 font-mono text-[11px] uppercase tracking-wide transition disabled:opacity-40',
             activeIsDone
-              ? 'border-accent bg-accent text-white hover:bg-foreground hover:border-foreground'
+              ? 'border-accent bg-accent text-background hover:bg-foreground hover:border-foreground'
               : 'border-rule text-foreground/70 hover:border-foreground hover:text-foreground',
           ].join(' ')}
           suppressHydrationWarning
@@ -193,6 +194,7 @@ export default function Day07Page() {
       <div className={activeId === 'N35' ? undefined : 'hidden'}>
         <NodeSearch docCount={docs.length} />
       </div>
+      <DayPager day={7} />
     </article>
   );
 }
@@ -755,7 +757,7 @@ function NodeIngest({
             <span className="font-mono text-[10px] uppercase tracking-[0.18em] text-muted">
               text
             </span>
-            <textarea
+            <textarea aria-label="Form input"
               value={text}
               onChange={(e) => setText(e.target.value)}
               disabled={loading}

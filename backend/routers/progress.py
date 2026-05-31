@@ -70,6 +70,67 @@ NODE_CATALOG: list[dict] = [
     {"node_id": "N48", "day": 10, "label": "Multimodal AI"},
     {"node_id": "N49", "day": 10, "label": "OpenAI Vision / DALL-E"},
     {"node_id": "N50", "day": 10, "label": "Development tools"},
+    # ── Advanced (Day 11–20) ──────────────────────────────────────
+    # Day 11 — Vector DB Landscape
+    {"node_id": "N51", "day": 11, "label": "FAISS"},
+    {"node_id": "N52", "day": 11, "label": "ChromaDB"},
+    {"node_id": "N53", "day": 11, "label": "Qdrant"},
+    {"node_id": "N54", "day": 11, "label": "Weaviate"},
+    {"node_id": "N55", "day": 11, "label": "Pinecone"},
+    # Day 12 — ML Frameworks
+    {"node_id": "N56", "day": 12, "label": "PyTorch"},
+    {"node_id": "N57", "day": 12, "label": "TensorFlow / Keras"},
+    {"node_id": "N58", "day": 12, "label": "HuggingFace Hub"},
+    {"node_id": "N59", "day": 12, "label": "Transformers library"},
+    {"node_id": "N60", "day": 12, "label": "ONNX Runtime"},
+    # Day 13 — Cloud AI Platforms
+    {"node_id": "N61", "day": 13, "label": "AWS Bedrock"},
+    {"node_id": "N62", "day": 13, "label": "GCP Vertex AI"},
+    {"node_id": "N63", "day": 13, "label": "Azure OpenAI"},
+    {"node_id": "N64", "day": 13, "label": "Alibaba DashScope"},
+    {"node_id": "N65", "day": 13, "label": "Kaggle / Google Colab"},
+    # Day 14 — Local Model Inference
+    {"node_id": "N66", "day": 14, "label": "Ollama"},
+    {"node_id": "N67", "day": 14, "label": "vLLM"},
+    {"node_id": "N68", "day": 14, "label": "TGI"},
+    {"node_id": "N69", "day": 14, "label": "llama.cpp"},
+    {"node_id": "N70", "day": 14, "label": "LM Studio"},
+    # Day 15 — Observability & Evals
+    {"node_id": "N71", "day": 15, "label": "LangSmith"},
+    {"node_id": "N72", "day": 15, "label": "Langfuse"},
+    {"node_id": "N73", "day": 15, "label": "RAGAS"},
+    {"node_id": "N74", "day": 15, "label": "Weave (W&B)"},
+    {"node_id": "N75", "day": 15, "label": "OpenTelemetry for LLMs"},
+    # Day 16 — LLM Frameworks
+    {"node_id": "N76", "day": 16, "label": "LangChain core (LCEL)"},
+    {"node_id": "N77", "day": 16, "label": "LangChain agents + tools"},
+    {"node_id": "N78", "day": 16, "label": "LlamaIndex"},
+    {"node_id": "N79", "day": 16, "label": "LangGraph"},
+    {"node_id": "N80", "day": 16, "label": "CrewAI"},
+    # Day 17 — Production & Deployment
+    {"node_id": "N81", "day": 17, "label": "Dockerizing AI apps"},
+    {"node_id": "N82", "day": 17, "label": "CI/CD for AI apps"},
+    {"node_id": "N83", "day": 17, "label": "Cost optimization"},
+    {"node_id": "N84", "day": 17, "label": "Health checks & monitoring"},
+    {"node_id": "N85", "day": 17, "label": "Zero-downtime deployment"},
+    # Day 18 — Fine-tuning
+    {"node_id": "N86", "day": 18, "label": "Fine-tuning (LoRA / QLoRA)"},
+    {"node_id": "N87", "day": 18, "label": "RLHF"},
+    {"node_id": "N88", "day": 18, "label": "DPO"},
+    {"node_id": "N89", "day": 18, "label": "AI alignment & safety"},
+    {"node_id": "N90", "day": 18, "label": "Quantization & model compression"},
+    # Day 19 — AI Business & Products
+    {"node_id": "N91", "day": 19, "label": "AI product pricing models"},
+    {"node_id": "N92", "day": 19, "label": "GTM for AI products"},
+    {"node_id": "N93", "day": 19, "label": "The demo trap"},
+    {"node_id": "N94", "day": 19, "label": "Building with AI APIs responsibly"},
+    {"node_id": "N95", "day": 19, "label": "AI product case studies"},
+    # Day 20 — Capstone
+    {"node_id": "N96", "day": 20, "label": "Choosing your stack"},
+    {"node_id": "N97", "day": 20, "label": "Architecture patterns"},
+    {"node_id": "N98", "day": 20, "label": "Build a RAG app end-to-end"},
+    {"node_id": "N99", "day": 20, "label": "Eval, iterate, improve"},
+    {"node_id": "N100", "day": 20, "label": "What comes next"},
 ]
 
 NODE_IDS = {n["node_id"] for n in NODE_CATALOG}

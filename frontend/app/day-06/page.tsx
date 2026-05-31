@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { useNodeProgress } from '../components/useNodeProgress';
+import DayPager from '../components/DayPager';
 
 const NODES = [
   { id: 'N26', label: 'Inspector', title: 'What are embeddings?' },
@@ -65,7 +66,7 @@ export default function Day06Page() {
               className={[
                 'flex items-center gap-1.5 border px-3 py-1.5 font-mono text-xs uppercase tracking-wide transition',
                 active
-                  ? 'border-accent bg-accent text-white'
+                  ? 'border-accent bg-accent text-background'
                   : 'border-rule text-foreground/70 hover:border-foreground hover:text-foreground',
               ].join(' ')}
             >
@@ -75,7 +76,7 @@ export default function Day06Page() {
                   done
                     ? active
                       ? 'border-white bg-white text-accent'
-                      : 'border-accent bg-accent text-white'
+                      : 'border-accent bg-accent text-background'
                     : active
                       ? 'border-white/60'
                       : 'border-rule',
@@ -98,7 +99,7 @@ export default function Day06Page() {
           className={[
             'flex items-center gap-1.5 border px-2.5 py-1 font-mono text-[11px] uppercase tracking-wide transition disabled:opacity-40',
             activeIsDone
-              ? 'border-accent bg-accent text-white hover:bg-foreground hover:border-foreground'
+              ? 'border-accent bg-accent text-background hover:bg-foreground hover:border-foreground'
               : 'border-rule text-foreground/70 hover:border-foreground hover:text-foreground',
           ].join(' ')}
           suppressHydrationWarning
@@ -123,6 +124,7 @@ export default function Day06Page() {
       <div className={activeId === 'N30' ? undefined : 'hidden'}>
         <NodeAnomaly />
       </div>
+      <DayPager day={6} />
     </article>
   );
 }
@@ -508,7 +510,7 @@ function NodeSearch() {
           <span className="font-mono text-[10px] uppercase tracking-[0.18em] text-muted">
             Documents (one per line)
           </span>
-          <textarea
+          <textarea aria-label="Form input"
             value={docs}
             onChange={(e) => setDocs(e.target.value)}
             disabled={loading}
@@ -656,7 +658,7 @@ function NodeClassify() {
           <span className="font-mono text-[10px] uppercase tracking-[0.18em] text-muted">
             Text to classify
           </span>
-          <textarea
+          <textarea aria-label="Form input"
             value={text}
             onChange={(e) => setText(e.target.value)}
             disabled={loading}
@@ -1079,7 +1081,7 @@ function NodeAnomaly() {
           <span className="font-mono text-[10px] uppercase tracking-[0.18em] text-muted">
             Items (one per line — at least 3)
           </span>
-          <textarea
+          <textarea aria-label="Form input"
             value={items}
             onChange={(e) => setItems(e.target.value)}
             disabled={loading}

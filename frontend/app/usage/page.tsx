@@ -5,6 +5,7 @@ import { useNodeProgress } from '../components/useNodeProgress';
 
 type DailyRow = {
   date: string;
+  day: string; // 'day01' through 'day20' (or other endpoint tags)
   provider: string;
   prompt_tokens: number;
   completion_tokens: number;
@@ -15,12 +16,35 @@ type DailyRow = {
 
 type MonthlyRow = {
   month: string;
+  day: string;
   provider: string;
   prompt_tokens: number;
   completion_tokens: number;
   total_tokens: number;
   cost_usd: number;
   calls: number;
+};
+
+type Tier = 'basic' | 'advanced';
+
+// Day 1-10 = basic (beginner curriculum), Day 11-20 = advanced.
+// Anything that doesn't parse as a day number is bucketed into basic so
+// historical pre-day-tagged rows don't disappear from the totals.
+function tierOf(dayStr: string): Tier {
+  const m = /^day(\d+)$/.exec(dayStr || '');
+  if (!m) return 'basic';
+  const n = parseInt(m[1], 10);
+  return n >= 11 ? 'advanced' : 'basic';
+}
+
+const TIER_COLOR: Record<Tier, string> = {
+  basic: '#22c55e', // green
+  advanced: '#f97316', // accent orange
+};
+
+const TIER_LABEL: Record<Tier, string> = {
+  basic: 'Basic · Day 1-10',
+  advanced: 'Advanced · Day 11-20',
 };
 
 type DailyResponse = { days: number; rows: DailyRow[]; available: boolean };
@@ -192,12 +216,31 @@ export default function UsagePage() {
     [filteredDaily],
   );
 
-  const providerTotals = useMemo(() => {
-    const t: Record<string, number> = {};
+  const tierTotals = useMemo(() => {
+    const empty = { tokens: 0, cost: 0, calls: 0 };
+    const out: Record<Tier, typeof empty> = {
+      basic: { ...empty },
+      advanced: { ...empty },
+    };
     for (const r of filteredDaily) {
-      t[r.provider] = (t[r.provider] ?? 0) + r.total_tokens;
+      const t = tierOf(r.day);
+      out[t].tokens += r.total_tokens;
+      out[t].cost += r.cost_usd;
+      out[t].calls += r.calls;
     }
-    return t;
+    return out;
+  }, [filteredDaily]);
+
+  const providerTotalsByTier = useMemo(() => {
+    const out: Record<Tier, Record<string, number>> = {
+      basic: {},
+      advanced: {},
+    };
+    for (const r of filteredDaily) {
+      const t = tierOf(r.day);
+      out[t][r.provider] = (out[t][r.provider] ?? 0) + r.total_tokens;
+    }
+    return out;
   }, [filteredDaily]);
 
   const maxDailyTotal = Math.max(1, ...dailyByDate.map((d) => d.total));
@@ -216,7 +259,7 @@ export default function UsagePage() {
   const noneSelected = enabledProviders.size === 0;
 
   return (
-    <article className="space-y-10">
+    <article className="space-y-10 lg:-mx-12 xl:-mx-24">
       <header className="space-y-2 border-b border-rule pb-6">
         <div className="flex flex-wrap items-center justify-between gap-2">
           <p className="font-mono text-xs uppercase tracking-[0.2em] text-muted">
@@ -320,7 +363,7 @@ export default function UsagePage() {
                         className={[
                           'border px-2.5 py-1 font-mono text-[11px] uppercase tracking-wide transition',
                           active
-                            ? 'border-accent bg-accent text-white'
+                            ? 'border-accent bg-accent text-background'
                             : 'border-rule text-foreground/70 hover:border-foreground hover:text-foreground',
                         ].join(' ')}
                       >
@@ -397,6 +440,7 @@ export default function UsagePage() {
             </p>
           ) : (
             <>
+              {/* Overall totals — combined across both tiers */}
               <section className="grid grid-cols-1 gap-3 md:grid-cols-3">
                 <Stat
                   label={`${pickedDate || range.label} · tokens`}
@@ -413,33 +457,107 @@ export default function UsagePage() {
                 />
               </section>
 
-              {/* Per-provider mini-summary inside the active filter */}
-              <section className="grid grid-cols-2 gap-2 md:grid-cols-4">
-                {PROVIDERS.filter((p) => enabledProviders.has(p)).map((p) => {
-                  const v = providerTotals[p] ?? 0;
-                  const pct = totals.tokens
-                    ? (v / totals.tokens) * 100
+              {/* Tier split — Basic (Day 1-10) vs Advanced (Day 11-20) */}
+              <section className="grid grid-cols-1 gap-3 md:grid-cols-2">
+                {(['basic', 'advanced'] as Tier[]).map((t) => {
+                  const tt = tierTotals[t];
+                  const share = totals.tokens
+                    ? (tt.tokens / totals.tokens) * 100
                     : 0;
+                  const enabledProviderList = PROVIDERS.filter((p) =>
+                    enabledProviders.has(p),
+                  );
                   return (
                     <div
-                      key={p}
-                      className="border border-rule bg-paper p-3"
+                      key={t}
+                      className="space-y-3 border bg-paper p-4"
+                      style={{
+                        borderTopColor: TIER_COLOR[t],
+                        borderRightColor: 'var(--rule)',
+                        borderBottomColor: 'var(--rule)',
+                        borderLeftColor: 'var(--rule)',
+                        borderTopWidth: 2,
+                      }}
                     >
-                      <div className="flex items-center gap-2">
+                      <div className="flex items-baseline justify-between gap-2">
                         <span
-                          className="inline-block h-2 w-2 rounded-sm"
-                          style={{ background: PROVIDER_COLORS[p] }}
-                        />
+                          className="font-mono text-[11px] uppercase tracking-[0.18em]"
+                          style={{ color: TIER_COLOR[t] }}
+                        >
+                          {TIER_LABEL[t]}
+                        </span>
                         <span className="font-mono text-[10px] uppercase tracking-wide text-muted">
-                          {p}
+                          {share.toFixed(0)}% of window
                         </span>
                       </div>
-                      <div className="mt-1 font-serif text-xl font-semibold tabular-nums">
-                        {formatNum(v)}
+
+                      <div className="grid grid-cols-3 gap-2">
+                        <TierStat label="tokens" value={formatNum(tt.tokens)} />
+                        <TierStat label="cost" value={formatCost(tt.cost)} />
+                        <TierStat label="calls" value={formatNum(tt.calls)} />
                       </div>
-                      <div className="font-mono text-[10px] text-muted">
-                        {pct.toFixed(0)}%
-                      </div>
+
+                      {tt.tokens > 0 ? (
+                        <div className="space-y-1">
+                          <div className="font-mono text-[10px] uppercase tracking-wide text-muted">
+                            by provider
+                          </div>
+                          <div className="flex h-1.5 overflow-hidden rounded-sm bg-rule">
+                            {enabledProviderList.map((p) => {
+                              const v = providerTotalsByTier[t][p] ?? 0;
+                              const pct = tt.tokens
+                                ? (v / tt.tokens) * 100
+                                : 0;
+                              if (pct === 0) return null;
+                              return (
+                                <div
+                                  key={p}
+                                  title={`${p}: ${formatNum(v)} tok`}
+                                  style={{
+                                    width: `${pct}%`,
+                                    background: PROVIDER_COLORS[p],
+                                  }}
+                                />
+                              );
+                            })}
+                          </div>
+                          <ul className="grid grid-cols-2 gap-x-3 gap-y-0.5 pt-1 text-[11px]">
+                            {enabledProviderList.map((p) => {
+                              const v = providerTotalsByTier[t][p] ?? 0;
+                              if (v === 0) return null;
+                              const pct = tt.tokens
+                                ? (v / tt.tokens) * 100
+                                : 0;
+                              return (
+                                <li
+                                  key={p}
+                                  className="flex items-center gap-1.5 font-mono text-muted"
+                                >
+                                  <span
+                                    className="inline-block h-1.5 w-1.5 rounded-sm"
+                                    style={{
+                                      background: PROVIDER_COLORS[p],
+                                    }}
+                                  />
+                                  <span className="text-foreground/85">
+                                    {p}
+                                  </span>
+                                  <span className="ml-auto tabular-nums">
+                                    {formatNum(v)}
+                                  </span>
+                                  <span className="w-[2.5em] text-right tabular-nums">
+                                    {pct.toFixed(0)}%
+                                  </span>
+                                </li>
+                              );
+                            })}
+                          </ul>
+                        </div>
+                      ) : (
+                        <p className="font-mono text-[11px] uppercase tracking-wide text-muted">
+                          No {t} usage in this window.
+                        </p>
+                      )}
                     </div>
                   );
                 })}
@@ -575,6 +693,19 @@ function Stat({
   );
 }
 
+function TierStat({ label, value }: { label: string; value: string }) {
+  return (
+    <div>
+      <div className="font-mono text-[10px] uppercase tracking-wide text-muted">
+        {label}
+      </div>
+      <div className="font-serif text-lg font-semibold tabular-nums">
+        {value}
+      </div>
+    </div>
+  );
+}
+
 function ProviderBar({
   byProvider,
   total,
@@ -588,7 +719,7 @@ function ProviderBar({
   return (
     <div className="mt-2">
       <div
-        className="flex h-[6px] overflow-hidden rounded-sm bg-rule"
+        className="flex h-1.5 overflow-hidden rounded-sm bg-rule"
         style={{ width: `${Math.max(2, widthPct)}%` }}
       >
         {Object.entries(byProvider).map(([p, n]) => {
@@ -653,7 +784,7 @@ function StackedBarChart({
           </div>
 
           {/* Bars */}
-          <div className="relative flex h-44 items-stretch gap-[2px]">
+          <div className="relative flex h-44 items-stretch gap-0.5">
             {data.map((d) => {
               const heightPct = (d.total / max) * 100;
               return (
@@ -692,7 +823,7 @@ function StackedBarChart({
       </div>
 
       {/* X axis */}
-      <div className="ml-14 mt-2 flex gap-[2px] font-mono text-[9px] text-muted">
+      <div className="ml-14 mt-2 flex gap-0.5 font-mono text-[9px] text-muted">
         {data.map((d, i) => {
           const showLabel =
             data.length <= 14 ||

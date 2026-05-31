@@ -4,6 +4,7 @@ import { useState } from 'react';
 import ModelSwitcher from '../components/ModelSwitcher';
 import { Markdown } from '../components/Markdown';
 import { useNodeProgress } from '../components/useNodeProgress';
+import DayPager from '../components/DayPager';
 
 const NODES = [
   { id: 'N41', label: 'What are agents', title: 'What are AI agents?' },
@@ -67,7 +68,7 @@ export default function Day09Page() {
               className={[
                 'flex items-center gap-1.5 border px-3 py-1.5 font-mono text-xs uppercase tracking-wide transition',
                 active
-                  ? 'border-accent bg-accent text-white'
+                  ? 'border-accent bg-accent text-background'
                   : 'border-rule text-foreground/70 hover:border-foreground hover:text-foreground',
               ].join(' ')}
             >
@@ -77,7 +78,7 @@ export default function Day09Page() {
                   done
                     ? active
                       ? 'border-white bg-white text-accent'
-                      : 'border-accent bg-accent text-white'
+                      : 'border-accent bg-accent text-background'
                     : active
                       ? 'border-white/60'
                       : 'border-rule',
@@ -100,7 +101,7 @@ export default function Day09Page() {
           className={[
             'flex items-center gap-1.5 border px-2.5 py-1 font-mono text-[11px] uppercase tracking-wide transition disabled:opacity-40',
             activeIsDone
-              ? 'border-accent bg-accent text-white hover:bg-foreground hover:border-foreground'
+              ? 'border-accent bg-accent text-background hover:bg-foreground hover:border-foreground'
               : 'border-rule text-foreground/70 hover:border-foreground hover:text-foreground',
           ].join(' ')}
           suppressHydrationWarning
@@ -125,6 +126,7 @@ export default function Day09Page() {
       <div className={activeId === 'N45' ? undefined : 'hidden'}>
         <NodeFrameworks />
       </div>
+      <DayPager day={9} />
     </article>
   );
 }
@@ -831,7 +833,7 @@ function NodeTools() {
             </button>
           ))}
         </div>
-        <textarea
+        <textarea aria-label="Form input"
           value={question}
           onChange={(e) => setQuestion(e.target.value)}
           disabled={loading}
@@ -1035,7 +1037,7 @@ function NodeMultiAgent() {
             </button>
           ))}
         </div>
-        <textarea
+        <textarea aria-label="Form input"
           value={topic}
           onChange={(e) => setTopic(e.target.value)}
           disabled={loading}

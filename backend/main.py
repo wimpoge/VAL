@@ -23,6 +23,16 @@ from routers import (
     day08,
     day09,
     day10,
+    day11,
+    day12,
+    day13,
+    day14,
+    day15,
+    day16,
+    day17,
+    day18,
+    day19,
+    day20,
     progress,
 )
 
@@ -37,6 +47,16 @@ DAY_TOPICS = {
     8: "RAG",
     9: "AI Agents",
     10: "MCP + Safety + Multimodal",
+    11: "Vector DB Landscape",
+    12: "ML Frameworks",
+    13: "Cloud AI Platforms",
+    14: "Local Model Inference",
+    15: "Observability & Evals",
+    16: "LLM Frameworks",
+    17: "Production & Deployment",
+    18: "Advanced AI Topics",
+    19: "AI Business & Products",
+    20: "Capstone — Build Your AI App",
 }
 
 tags_metadata = [
@@ -77,6 +97,7 @@ app.include_router(progress.router, tags=["Progress"])
 _day_routers = [
     day01, day02, day03, day04, day05,
     day06, day07, day08, day09, day10,
+    day11, day12, day13, day14, day15, day16, day17, day18, day19, day20,
 ]
 for n, mod in enumerate(_day_routers, start=1):
     tag = f"Day {n:02d} — {DAY_TOPICS[n]}"

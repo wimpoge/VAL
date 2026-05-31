@@ -4,6 +4,7 @@ import { memo, useEffect, useImperativeHandle, useRef, useState } from 'react';
 import { AnswerCard } from '../components/Markdown';
 import ModelSwitcher from '../components/ModelSwitcher';
 import { useNodeProgress } from '../components/useNodeProgress';
+import DayPager from '../components/DayPager';
 import { useStreamingAsk } from '../components/useStreamingAsk';
 
 const NODES = [
@@ -53,7 +54,7 @@ export default function Day02Page() {
               className={[
                 'flex items-center gap-1.5 border px-3 py-1.5 font-mono text-xs uppercase tracking-wide transition',
                 isActive
-                  ? 'border-accent bg-accent text-white'
+                  ? 'border-accent bg-accent text-background'
                   : 'border-rule text-foreground/70 hover:border-foreground hover:text-foreground',
               ].join(' ')}
             >
@@ -63,7 +64,7 @@ export default function Day02Page() {
                   done
                     ? isActive
                       ? 'border-white bg-white text-accent'
-                      : 'border-accent bg-accent text-white'
+                      : 'border-accent bg-accent text-background'
                     : isActive
                       ? 'border-white/60'
                       : 'border-rule',
@@ -86,7 +87,7 @@ export default function Day02Page() {
           className={[
             'flex items-center gap-1.5 border px-2.5 py-1 font-mono text-[11px] uppercase tracking-wide transition disabled:opacity-40',
             activeIsDone
-              ? 'border-accent bg-accent text-white hover:bg-foreground hover:border-foreground'
+              ? 'border-accent bg-accent text-background hover:bg-foreground hover:border-foreground'
               : 'border-rule text-foreground/70 hover:border-foreground hover:text-foreground',
           ].join(' ')}
           suppressHydrationWarning
@@ -101,6 +102,7 @@ export default function Day02Page() {
       {activeId === 'N8' && <NodeEmbeddings />}
       {activeId === 'N9' && <NodeInference />}
       {activeId === 'N10' && <NodeVectorDB />}
+      <DayPager day={2} />
     </article>
   );
 }
@@ -168,7 +170,7 @@ function StreamingExplainer({
             disabled={loading}
           />
         </div>
-        <textarea
+        <textarea aria-label="Form input"
           value={question}
           onChange={(e) => setQuestion(e.target.value)}
           disabled={loading}
@@ -286,7 +288,7 @@ function NodeTokens() {
             disabled={loading}
           />
         </div>
-        <textarea
+        <textarea aria-label="Form input"
           value={text}
           onChange={(e) => setText(e.target.value)}
           disabled={loading}
@@ -569,7 +571,7 @@ LLM apps use embeddings for semantic search.`,
         </span>
       </div>
       <form onSubmit={submit} className="space-y-4">
-        <textarea
+        <textarea aria-label="Form input"
           value={input}
           onChange={(e) => setInput(e.target.value)}
           disabled={loading}
@@ -754,7 +756,7 @@ const HeatmapSection = memo(function HeatmapSection({
                   className={[
                     'inline-block w-[60px] shrink-0 border px-1.5 py-0.5 text-center font-mono text-[10px] uppercase tracking-wide',
                     isQuery
-                      ? 'border-accent bg-accent text-white'
+                      ? 'border-accent bg-accent text-background'
                       : 'border-rule text-muted',
                   ].join(' ')}
                 >
@@ -1216,7 +1218,7 @@ function NodeInference() {
             disabled={loading}
           />
         </div>
-        <textarea
+        <textarea aria-label="Form input"
           value={prompt}
           onChange={(e) => setPrompt(e.target.value)}
           disabled={loading}
@@ -1227,7 +1229,7 @@ function NodeInference() {
           <label className="font-mono text-xs uppercase tracking-wide text-muted">
             Runs
           </label>
-          <select
+          <select aria-label="Number of runs"
             value={runs}
             onChange={(e) => setRuns(Number(e.target.value))}
             disabled={loading === true}
